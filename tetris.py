@@ -186,7 +186,10 @@ def convert_shape_format(shape):  # the goal here is to convert the dots and zer
 			positions[i] = (pos[0] - 2, pos[1] - 4) # Will move everything left and up. Seems it's *not* using indexes.
 													
 		# what I think he's going for here is the coordinate 'x' in conjunction with the column index. Maybe.
-												
+
+        return positions
+
+
 def valid_space(shape, grid):
 	accepted_pos = [[(j,i) for j in range(10) if grid[i][j] == (0,0,0)] for i in range(20)] # a two dimensional list
 	accepted_pos = [j for sub in accepted_pos for j in sub] # flattening and overriding that into a one dimensional list (easier to loop through)
@@ -221,14 +224,27 @@ def draw_grid(surface, grid):
 	for i in range(len(range)):
 		pygame.draw.line(surface, (128,128,128),(sx,sy+i*block_size), (sx+play_width, sy+ i*block_size)) #color, start postiion, end position (10 vertical, his count is off)
 		for j in range(len(grid[i])):
-				pygame.draw.line(surface, (128, 128, 128), (sx+j*block_size, sy), (sx+j*block_size, sy+play_height))  #color, start postiion, end position (20 horizontal, his count is off) 
+			pygame.draw.line(surface, (128, 128, 128), (sx+j*block_size, sy), (sx+j*block_size, sy+play_height))  #color, start postiion, end position (20 horizontal, his count is off) 
 
 
 def clear_rows(grid, locked):
 	pass
 
 def draw_next_shape(shape, surface):
-	pass
+	font = pygame.font.SysFont('comicsans', 30)
+    label = font.render('Next Shape', 1, (255,255,255))
+
+    sx = top_left_x + play_width + 50
+    sy = top_left_y + play_height/2 - 100
+    format = shape.shape[shape.rotation % len(shape.shape)]
+
+    for i, line in enumerate(format):
+        row = list(line)
+        for j, column in enumerate(row):
+            if column == '0':
+                pygame.draw.rect(surface, shape.color, (sx +j*block_size, sy + i*block_size, block_size, block_size),0)
+
+    surface.blit(label, sx + 10, sy - 30)
 
 def draw_window(surface, grid):
 	surface.fill((0,0,0)) #predictably, filled with black.
@@ -250,7 +266,6 @@ def draw_window(surface, grid):
 	pygame.draw.rect(surface, (255, 0, 0), (top_left_x,top_left_y, play_width, play_height), 5)
 
 	draw_grid(surface,grid)
-	pygame.display.update()  # updates the screen
 
 
 def main(win): #looks like elements of game play coming together
@@ -274,8 +289,8 @@ def main(win): #looks like elements of game play coming together
 			fall_time = 0
 			current_piece.y += 1
 			if not(valid_space(current_piece, grid)) and current_piece.y > 0:
-				current_piece.y -= 1 #basically undoes the move (since it is not allowed)
-				change_piece = True
+				current_piece.y -= 1 #basically undoes the invalid move (since it is not allowed)
+				change_piece = True # explains his reasoning for this at minute 50.
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -285,21 +300,44 @@ def main(win): #looks like elements of game play coming together
 				if event.key == pygame.K_LEFT:
 					current_piece.x -= 1
 					if not(valid_space(current_piece,grid)):
-						current_piece += 1 #+1 to pretend the move never happened.
+						current_piece.x += 1 #+1 to pretend the move never happened.
 				if event.key == pygame.K_RIGHT:
 					current_piece.x += 1
 					if not(valid_space(current_piece, grid)):
-						current_piece -= 1
+						current_piece.x -= 1
 				if event.key == pygame.K_DOWN:
 					current_piece.y += 1
 					if not(valid_space(current_piece, grid)):
-						current_piece.y -= 1 #why does he specify .y here when correcting but not .x with the others?
+						current_piece.y -= 1
 				if event.key == pygame.K_UP:
 					current_piece.rotation += 1
 					if not(valid_space(current_piece, grid)): #rotation itself can cause mismatches.
-						current_piece -= 1
+						current_piece.rotation -= 1
+
+		shape_pos = convert_shape_format(current_piece) # to check all of the positions of the piece moving down 
+														# to see it has this ground or needs to be locked.
+		for i in range(len(shape_pos)):
+            x, y = shape_pos[i] #this makes the piece visible by adding its color.
+            if y > -1:  #so that we are not above the screen. Without this, it would start at the bottom and cycle over to the top.
+                grid[y][x] = current_piece.color    #this applies the specfic color
+                                                    #to the grid at those x and y coordiantes
+        if change_piece: 
+            for pos in shape_pos:
+                p = (pos[0], pos[1])
+                locked_positions[p] = current_piece.color
+                #locked_position[p] will end up being a dictionary of {(x,y):(255,255,255)}
+            current_piece = next_piece
+            next_piece = get_shape()
+            change_piece = False
 
 		draw_window(win, grid)
+        draw_next_shape(next_piece, win)
+        pygame.display.update()
+
+        if check_lost(locked_positions):
+            run = False
+
+    pygame.display.quit()
 
 def main_menu(win):
 	main(win)
