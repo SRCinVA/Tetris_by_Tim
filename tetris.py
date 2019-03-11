@@ -161,7 +161,7 @@ def convert_shape_format(shape):
     format = shape.shape[shape.rotation % len(shape.shape)]
 
     # below: to add all of the x and y coordinates as the shape falls, in addition to the rows (i) and columns (j)
-    for i, line in enumurate(format):#to search for a 0 or period.
+    for i, line in enumerate(format):#to search for a 0 or period.
         row = list(line)
         for j, column in enumerate(row):
             if column == '0':
@@ -170,6 +170,8 @@ def convert_shape_format(shape):
     for i, pos in enumerate(positions):
         positions[i] = (pos[0] - 2, pos[1] - 4)
         # this could be because spawning happens above play field.
+
+    return positions
 
 def valid_space(shape, grid):
     accepted_pos = [[(j,i) for j in range(10) if grid[i][j] == (0,0,0)] for i in range(20)] #accepted only if empty (0,0,0)
@@ -203,10 +205,10 @@ def draw_grid(surface, grid): #"surface" hosts images in pygame; grid from creat
     sx = top_left_x
     sy = top_left_y
     # below: to superimpose the visible lines over the grid
-    for in range(len(grid)):
-        pygame.draw.line(surface, (128,128,128),(sx, sy + i*block_size) (sx + play_width, sy)) 
+    for i in range(len(grid)):
+        pygame.draw.line(surface, (128,128,128),(sx, sy + i*block_size),(sx + play_width, sy)) 
         for j in range(len(grid[i])):
-            pygame.draw.line(surface, (128, 128, 128), (sx + j*block_size, sy),(sx + j*block_size, sy + playheight))
+            pygame.draw.line(surface, (128, 128, 128), (sx + j*block_size, sy),(sx + j*block_size, sy + play_height))
 
 
 def clear_rows(grid, locked):
@@ -222,7 +224,7 @@ def draw_window(surface, grid):
     font = pygame.font.SysFont('comicsans', 60)
     label = font.render('Tetris', 1, (255, 255, 255))  # anti-aliasing of 1
 
-    surface.blit(label(top_left_x + play_width/2 - (label.get_width()/2), 30))
+    surface.blit(label, (top_left_x + play_width/2 - (label.get_width()/2), 30))
     # above: middle of screen - width of label; the y can be static
     
     for i in range(len(grid)):  # to draw the objects on to the screen
@@ -257,7 +259,7 @@ def main(win):
         if fall_time/1000 > fall_speed:
             fall_time = 0
             current_piece.y += 1 # automatically moves piece down         
-            if not (valid_space(current_piece, grid)) and current_piece > 0:
+            if not (valid_space(current_piece, grid)) and current_piece.y > 0:
                 current_piece.y -= 1
                 change_piece = True
 
@@ -270,22 +272,22 @@ def main(win):
                 run = False
 
             if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_LEFT:
-					current_piece.x -= 1
-					if not(valid_space(current_piece, grid)):
-						current_piece.x += 1  # +1 to pretend the move never happened.
-				if event.key == pygame.K_RIGHT:
-					current_piece.x += 1
-					if not(valid_space(current_piece, grid)):
-						current_piece.x -= 1
-				if event.key == pygame.K_DOWN:
-					current_piece.y += 1
-					if not(valid_space(current_piece, grid)):
-						current_piece.y -= 1
-				if event.key == pygame.K_UP: #rotation could cause border violations
-					current_piece.rotation += 1
-					if not(valid_space(current_piece, grid)):
-						current_piece.rotation -= 1
+                if event.key == pygame.K_LEFT:
+                    current_piece.x -= 1
+                    if not(valid_space(current_piece, grid)):
+                        current_piece.x += 1  # +1 to pretend the move never happened.
+                if event.key == pygame.K_RIGHT:
+                    current_piece.x += 1
+                    if not(valid_space(current_piece, grid)):
+                        current_piece.x -= 1
+                if event.key == pygame.K_DOWN:
+                    current_piece.y += 1
+                    if not(valid_space(current_piece, grid)):
+                        current_piece.y -= 1
+                if event.key == pygame.K_UP: #rotation could cause border violations
+                    current_piece.rotation += 1
+                    if not(valid_space(current_piece, grid)):
+                        current_piece.rotation -= 1
 
         shape_pos = convert_shape_format(current_piece) #to determine if it is on the ground
         #below: adds the colors to the grid                                                #or otherwise needs to be locked.
@@ -296,10 +298,18 @@ def main(win):
 
         if change_piece: #think of this just as a boolean condition, not a function
             for pos in shape_pos:
-                p = (pos[0][1])
-                locked_positions[p] = current_piece.color
+                p = (pos[0], pos[1])
+                locked_positions[p] = current_piece.color #a dictionary {(x,y):(255,255,255)}
+            current_piece = next_piece #in variables at top of main()
+            next_piece = get_shape()   #in variables at top of main()
+            change_piece = False #b/c a new piece will spawn at the top
 
         draw_window(win, grid)
+
+        if check_lost(locked_positions):
+            run = False
+    pygame.display.quit()
+
 
 def main_menu(win):
     main(win)
@@ -307,4 +317,4 @@ def main_menu(win):
 win = pygame.display.set_mode((s_width, s_height))
 pygame.display.set_caption('Tetris')
 
-main_menu()  # start game
+main_menu(win)  # start game
