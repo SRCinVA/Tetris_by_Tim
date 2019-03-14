@@ -1,0 +1,20 @@
+Problem areas:
+
+       4:00 -- on top_left_x and top_left_y
+       9:54 --  his reasoning on how to display locked pieces 
+	             makes no sense at all.
+     16:21 -- don't understand his reasoning here
+     26:49 -- win = pygame.display.set_mode()  ... ? "win" as in "victory"?
+     31:00 -- i * block_size: i is the stand-in for y. OK. But why multiplication? 
+		  Does it re-create every line every time all the way to the end?
+     34:00 -- don't get the use of % here.
+     35:38 -- why will j be 0 and column be a period? Makes no sense.
+     36:18 -- is it for every individual x,y and j,i?
+     38:00 -- unclear why the (3,4) position would result.
+     38:47 -- why subtract 2 and 4? 
+     41:04 -- what is 'j for sub'?
+     45:39 -- if y < 1, "equal to 0 or greater". This statement is nonsense.
+     48:32 -- Speed and time are not the same.
+     51:52 -- why would the shapes spawn at the bottom of the screen?
+   100:06 -- uses modulus again to find the rotational sub-list.
+   100:33 -- what does list(line) do?
