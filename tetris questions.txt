@@ -16,5 +16,6 @@ Problem areas:
      45:39 -- if y < 1, "equal to 0 or greater". This statement is nonsense.
      48:32 -- Speed and time are not the same.
      51:52 -- why would the shapes spawn at the bottom of the screen?
-   100:06 -- uses modulus again to find the rotational sub-list.
-   100:33 -- what does list(line) do?
+  1:00:06 -- uses modulus again to find the rotational sub-list.
+  1:00:33 -- what does list(line) do?
+  1:10:00 -- clear_row function is generally confusing 

@@ -211,7 +211,23 @@ def draw_grid(surface, grid): #"surface" hosts images in pygame; grid from creat
             pygame.draw.line(surface, (128, 128, 128), (sx + j*block_size, sy),(sx + j*block_size, sy + play_height))
 
 def clear_rows(grid, locked):
-    pass
+    inc = 0 #inc = increment
+    for i in range(len(grid) - 1, - 1, - 1): #loops through the grid backwards
+        row = grid[i]
+        if (0,0,0) not in row:
+            inc += 1 #counts the number of rows deleted to be accounted for.
+            ind = i #ind = index; need to track it becuase of how rows will shift.
+            for j in range(len(row)):
+                try:
+                    del locked[(j,i)]
+                except:
+                    continue
+    if inc > 0:
+        for key in sorted(list(locked), key = lambda x: x [1]) [::-1]:
+            x,y = key
+            if y < ind:
+                newKey = (x,y + inc)
+                locked[newKey] = locked.pop(key)
 
 def draw_next_shape(shape, surface):
     font = pygame.font.SysFont('comicsans', 30)
