@@ -223,11 +223,13 @@ def clear_rows(grid, locked):
                 except:
                     continue
     if inc > 0:
-        for key in sorted(list(locked), key = lambda x: x [1]) [::-1]:
-            x,y = key
+        for key in sorted(list(locked), key = lambda x: x [1]) [::-1]: #go backwards to not overwrite lower-positioned rows.
+            x,y = key                                                  #remember: you cna overwrite keys in a dictionary.
             if y < ind:
                 newKey = (x,y + inc)
                 locked[newKey] = locked.pop(key)
+
+    return inc   #number of rows cleared, as a stand-in for score.
 
 def draw_next_shape(shape, surface):
     font = pygame.font.SysFont('comicsans', 30)
@@ -246,7 +248,7 @@ def draw_next_shape(shape, surface):
 
     surface.blit(label, (sx + 10, sy - 30))
 
-def draw_window(surface, grid):
+def draw_window(surface, grid, score=0):
     surface.fill((0, 0, 0))
 
     pygame.font.init()
@@ -277,11 +279,18 @@ def main(win):
     clock = pygame.time.Clock()
     fall_time = 0
     fall_speed = 0.27
+    level_time = 0
 
     while run:
         grid = create_grid(locked_positions) #grid needs constant updating
         fall_time += clock.get_rawtime() #rawtime gets the time since the last tick.
+        level_time += clock.get_rawtime()
         clock.tick()
+
+        if level_time/1000 > 5:
+            level_time = 0
+            if fall_speed > 0.12: #so the game is still playable. This is "terminal velocity".
+                fall_speed -= 0.005
 
         if fall_time/1000 > fall_speed:
             fall_time = 0
@@ -330,8 +339,10 @@ def main(win):
             current_piece = next_piece #in variables at top of main()
             next_piece = get_shape()   #in variables at top of main()
             change_piece = False #b/c a new piece will spawn at the top
+            clear_rows(grid,locked_positions)
+            score += clear_rows(grid, locked_positions) *10
 
-            draw_window(win, grid)
+            draw_window(win, grid, score)
             draw_next_shape(next_piece, win)
             pygame.display.update()
 
