@@ -199,7 +199,11 @@ def get_shape(): #no arugment passed? Odd.
     # the screen. Notice there is no argument for the outer function.
 
 def draw_text_middle(text, size, color, surface):
-    pass
+    font = pygame.font.SysFont("comicsans", size, bold=True)
+    label = font.render(text, 1, color)
+
+    surface.blit(label,(top_left_x + play_width /2 - (label.get_width()/2), top_left_y + play_height/2 - label.get_height()))
+
 
 def draw_grid(surface, grid): #"surface" hosts images in pygame; grid from create_grid
     sx = top_left_x
@@ -258,6 +262,14 @@ def draw_window(surface, grid, score=0):
     surface.blit(label, (top_left_x + play_width/2 - (label.get_width()/2), 30))
     # above: middle of screen - width of label; the y can be static
     
+    font = pygame.font.SysFont('comicsans', 30)
+    label = font.render('Score: ' + str(score), 1, (255, 255, 255))
+
+    sx = top_left_x + play_width + 50
+    sy = top_left_y + play_height/2 - 100
+
+    surface.blit(label, (sx + 20, sy + 160))
+
     for i in range(len(grid)):  # to draw the objects on to the screen
         for j in range(len(grid[i])):
             pygame.draw.rect(surface, grid[i][j], (top_left_x + j*block_size,
@@ -347,6 +359,9 @@ def main(win):
             pygame.display.update()
 
         if check_lost(locked_positions):
+            draw_text_middle(win,"You lost!",80, (255,255,255))
+            pygame.display.update()
+            pygame.time.delay(1500)
             run = False
     pygame.display.quit()
 
