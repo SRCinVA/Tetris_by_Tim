@@ -19,3 +19,4 @@ Problem areas:
   1:00:06 -- uses modulus again to find the rotational sub-list.
   1:00:33 -- what does list(line) do?
   1:10:00 -- clear_row function is generally confusing 
+  1:30:36 -- "f as" ?? This function is generally hard to follow.

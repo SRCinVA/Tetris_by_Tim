@@ -204,7 +204,6 @@ def draw_text_middle(text, size, color, surface):
 
     surface.blit(label,(top_left_x + play_width /2 - (label.get_width()/2), top_left_y + play_height/2 - label.get_height()))
 
-
 def draw_grid(surface, grid): #"surface" hosts images in pygame; grid from create_grid
     sx = top_left_x
     sy = top_left_y
@@ -252,7 +251,25 @@ def draw_next_shape(shape, surface):
 
     surface.blit(label, (sx + 10, sy - 30))
 
-def draw_window(surface, grid, score=0):
+def update_score(nscore):
+    score = max_score()
+
+    with open('score.txt', 'w') as f: #to add to the score
+        if int(score) > nscore:
+            f.write(str(score))
+        else:
+            f.write(str(nscore))
+
+        score = lines[0].strip()  # to strip off the invisible character.
+
+def max_score():
+    with open('score.txt', 'r') as f:
+        lines = f.readlines()
+        score = lines[0].strip()  # to strip off the invisible character.
+
+    return score
+
+def draw_window(surface, grid, score=0, last_score = 0):
     surface.fill((0, 0, 0))
 
     pygame.font.init()
@@ -262,11 +279,20 @@ def draw_window(surface, grid, score=0):
     surface.blit(label, (top_left_x + play_width/2 - (label.get_width()/2), 30))
     # above: middle of screen - width of label; the y can be static
     
+    # below: current score
     font = pygame.font.SysFont('comicsans', 30)
     label = font.render('Score: ' + str(score), 1, (255, 255, 255))
 
     sx = top_left_x + play_width + 50
     sy = top_left_y + play_height/2 - 100
+
+    surface.blit(label, (sx + 20, sy + 160))
+
+    #below: last score
+    label = font.render('High Score: ' + last_score, 1, (255, 255, 255))
+
+    sx = top_left_x - 200
+    sy = top_left_y + 200
 
     surface.blit(label, (sx + 20, sy + 160))
 
@@ -281,6 +307,7 @@ def draw_window(surface, grid, score=0):
     draw_grid(surface,grid)
 
 def main(win):
+    last_score = max_score()
     locked_positions = {}
     grid = create_grid(locked_positions)
 
@@ -318,6 +345,7 @@ def main(win):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                pyfgame.display.quit()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
@@ -354,20 +382,33 @@ def main(win):
             clear_rows(grid,locked_positions)
             score += clear_rows(grid, locked_positions) *10
 
-            draw_window(win, grid, score)
-            draw_next_shape(next_piece, win)
-            pygame.display.update()
+        draw_window(win, grid, score, last_score)
+        draw_next_shape(next_piece, win)
+        pygame.display.update()
 
         if check_lost(locked_positions):
             draw_text_middle(win,"You lost!",80, (255,255,255))
             pygame.display.update()
             pygame.time.delay(1500)
             run = False
-    pygame.display.quit()
+            update_score(score)
 
 
 def main_menu(win):
     main(win)
+    run = True
+    while run:
+        win.fill((0,0,0))
+        draw_text_middle(win, "Press any key to Play", 60, (255,255,255))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                main(win)
+
+    pygame.display.quit()
+
 #below: closes previous display
 win = pygame.display.set_mode((s_width, s_height))
 pygame.display.set_caption('Tetris')
